@@ -1,14 +1,3 @@
-/*
-*    Copyright (c) 2018 Shing Liu All Rights Reserved.
-*
-*           File : occQt.cpp
-*         Author : Shing Liu(eryar@163.com)
-*           Date : 2018-01-08 21:00
-*        Version : OpenCASCADE7.2.0 & Qt5.7.1
-*
-*    Description : Qt main window for OpenCASCADE.
-*/
-
 #include "occQt.h"
 #include "occView.h"
 
@@ -20,29 +9,40 @@
 #include <gp_Circ.hxx>
 #include <gp_Elips.hxx>
 #include <gp_Pln.hxx>
-
 #include <gp_Lin2d.hxx>
 
 #include <Geom_ConicalSurface.hxx>
 #include <Geom_ToroidalSurface.hxx>
+#include <GeomAPI_Interpolate.hxx>
+#include <GeomFill_BSplineCurves.hxx>
+#include <Geom_BSplineSurface.hxx>
+#include <GeomAPI_PointsToBSpline.hxx>
+#include <Geom_Plane.hxx>
 #include <Geom_CylindricalSurface.hxx>
+#include <Geom2d_Ellipse.hxx>
+#include <Geom2d_TrimmedCurve.hxx>
 
+#include <GC_MakeArcOfCircle.hxx>
+#include <GC_MakeSegment.hxx>
 #include <GCE2d_MakeSegment.hxx>
+#include <GC_MakeArcOfCircle.hxx>
 
+#include <TopoDS_Compound.hxx>
+#include <TopTools_HSequenceOfShape.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopoDS_Edge.hxx>
 #include <TopoDS.hxx>
 #include <TopExp.hxx>
-#include <TopExp_Explorer.hxx>
 #include <TColgp_Array1OfPnt2d.hxx>
 
 #include <BRepLib.hxx>
-
+#include <BRep_Builder.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepBuilderAPI_MakePolygon.hxx>
-
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakeCone.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
@@ -50,18 +50,28 @@
 #include <BRepPrimAPI_MakeTorus.hxx>
 #include <BRepPrimAPI_MakePrism.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
-
-#include <BRepFilletAPI_MakeFillet.hxx>
-#include <BRepFilletAPI_MakeChamfer.hxx>
-
+#include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRepPrimAPI_MakePrism.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
+#include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepOffsetAPI_ThruSections.hxx>
+#include <BRepOffsetAPI_MakeThickSolid.hxx>
 #include <BRepOffsetAPI_MakePipe.hxx>
 #include <BRepOffsetAPI_ThruSections.hxx>
-
+#include <BRepFilletAPI_MakeFillet.hxx>
+#include <BRepFilletAPI_MakeChamfer.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepAlgoAPI_Common.hxx>
+#include <BRepMesh_IncrementalMesh.hxx>
 
+#include <TColgp_HArray1OfPnt.hxx>
+#include <TColgp_Array2OfPnt.hxx>
+
+#include <AIS_InteractiveContext.hxx>
 #include <AIS_Shape.hxx>
+
+#include <StlAPI_Writer.hxx>
 
 occQt::occQt(QWidget *parent)
     : QMainWindow(parent)
@@ -115,8 +125,182 @@ void occQt::createActions( void )
 
     connect(ui.actionHelix, SIGNAL(triggered()), this, SLOT(testHelix()));
 
-    // Help
-    connect(ui.actionAbout, SIGNAL(triggered()), this, SLOT(about()));
+    // My func
+    connect(ui.actionAbout, SIGNAL(triggered()), this, SLOT(ExportBottle()));
+    connect(ui.action_b_spline, SIGNAL(triggered()), this, SLOT(ExportShape()));
+    connect(ui.actionShape, SIGNAL(triggered()), this, SLOT(makeSimpleShape()));
+
+}
+
+void occQt::sphere()
+{
+    BRepPrimAPI_MakeSphere mkSphere(20);
+    TopoDS_Shape Sphere=mkSphere.Shape();
+
+    Handle(AIS_Shape) anAisBox = new AIS_Shape(Sphere);
+
+    myOccView->getContext()->Display(anAisBox,  Standard_True );
+}
+
+TopoDS_Face occQt::SimpleShape()
+{
+    // Двумерный массив опорных точек
+    TColgp_Array2OfPnt points(1,5,1,3);
+
+    points.SetValue(1,1,gp_Pnt(1.,-1.,0.));
+    points.SetValue(1,2,gp_Pnt(1.,-1.,1.));
+    points.SetValue(1,3,gp_Pnt(0.,-1.,1.));
+    points.SetValue(2,1,gp_Pnt(1.,0.,0.));
+    points.SetValue(2,2,gp_Pnt(1.,0.,1.));
+    points.SetValue(2,3,gp_Pnt(0.,0.,1.));
+    points.SetValue(3,1,gp_Pnt(1.,1.,0.));
+    points.SetValue(3,2,gp_Pnt(1.,1.,1.));
+    points.SetValue(3,3,gp_Pnt(0.,0.,1.));
+    points.SetValue(3,3,gp_Pnt(0.,0.,1.));
+    points.SetValue(4,1,gp_Pnt(0.,1.,0.));
+    points.SetValue(4,2,gp_Pnt(0.,1.,1.));
+    points.SetValue(4,3,gp_Pnt(0.,0.,1.));
+    points.SetValue(5,1,gp_Pnt(-1.,1.,0.));
+    points.SetValue(5,2,gp_Pnt(-1.,1.,1.));
+    points.SetValue(5,3,gp_Pnt(-1.,0.,1.));
+    //
+    // Параметры в u-направлении
+    Standard_Integer uDegree = 3;
+    TColStd_Array1OfReal uKnots(1,3);
+    TColStd_Array1OfInteger uMults(1,3);
+    uKnots.SetValue(1,0.);
+    uKnots.SetValue(2,1.);
+    uKnots.SetValue(3,2.);
+    uMults.SetValue(1,4);
+    uMults.SetValue(2,1);
+    uMults.SetValue(3,4);
+
+    // Параметры в v-направлении
+    Standard_Integer vDegree = 2;
+    TColStd_Array1OfReal vKnots(1,2);
+    TColStd_Array1OfInteger vMults(1,2);
+    vKnots.SetValue(1,0.);
+    vKnots.SetValue(2,1.);
+    vMults.SetValue(1,3);
+    vMults.SetValue(2,3);
+
+    // Создаем поверхность
+    Handle(Geom_BSplineSurface) surface = new Geom_BSplineSurface(points, uKnots, vKnots,
+                                                        uMults, vMults, uDegree, vDegree);
+    // Поверхность по четырем кривым
+    Handle( Geom_BSplineCurve ) curve[4];
+    TColgp_Array1OfPnt pointsVCurve(1,3);
+    TColgp_Array1OfPnt pointsUCurve(1,5);
+    int i = 0;
+    for( int i=1; i<=5; i++ )
+       pointsUCurve.SetValue(i,points.Value(i,1));
+    curve[0] = new Geom_BSplineCurve (pointsUCurve, uKnots, uMults, uDegree);
+    for( i=1; i<=5; i++ )
+       pointsUCurve.SetValue(i,points.Value(i,3));
+    curve[1] = new Geom_BSplineCurve (pointsUCurve, uKnots, uMults, uDegree);
+    for( i=1; i<=3; i++ )
+       pointsVCurve.SetValue(i,points.Value(1,i));
+    curve[2] = new Geom_BSplineCurve (pointsVCurve, vKnots, vMults, vDegree);
+    for( i=1; i<=3; i++ )
+       pointsVCurve.SetValue(i,points.Value(5,i));
+    curve[3] = new Geom_BSplineCurve (pointsVCurve, vKnots, vMults, vDegree);
+
+    //собираем кривые
+    GeomFill_BSplineCurves geomFill;
+    geomFill.Init(curve[0], curve[1], curve[2], curve[3],GeomFill_StretchStyle);
+    curve[2]->IncreaseDegree(3);
+    curve[3]->IncreaseDegree(3);
+    geomFill.Init(curve[0], curve[1], curve[2], curve[3],GeomFill_CoonsStyle);
+    geomFill.Init(curve[0], curve[1], curve[2], curve[3],GeomFill_CurvedStyle);
+    surface = geomFill.Surface();
+
+    TopoDS_Face myFace = BRepBuilderAPI_MakeFace(surface, Precision::Approximation());
+    return myFace;
+}
+
+void occQt::makeSimpleShape()
+{
+    TopoDS_Face simpleShape = SimpleShape();
+    Handle(AIS_Shape) aisShape = new AIS_Shape(simpleShape);
+    myOccView->getContext()->Display( aisShape, Standard_True );
+}
+
+TopoDS_Shape occQt::MakeBottle(const Standard_Real myWidth, const Standard_Real myHeight,
+                               const Standard_Real myThickness)
+{
+    // Profile : Define Support Points
+    gp_Pnt aPnt1(-myWidth / 2., 0, 0);
+    gp_Pnt aPnt2(-myWidth / 2., -myThickness / 4., 0);
+    gp_Pnt aPnt3(0, -myThickness / 2., 0);
+    gp_Pnt aPnt4(myWidth / 2., -myThickness / 4., 0);
+    gp_Pnt aPnt5(myWidth / 2., 0, 0);
+    // Profile : Define the Geometry
+    Handle(Geom_TrimmedCurve) anArcOfCircle = GC_MakeArcOfCircle(aPnt2,aPnt3,aPnt4);
+    Handle(Geom_TrimmedCurve) aSegment1 = GC_MakeSegment(aPnt1, aPnt2);
+    Handle(Geom_TrimmedCurve) aSegment2 = GC_MakeSegment(aPnt4, aPnt5);
+    // Profile : Define the Topology
+    TopoDS_Edge anEdge1 = BRepBuilderAPI_MakeEdge(aSegment1);
+    TopoDS_Edge anEdge2 = BRepBuilderAPI_MakeEdge(anArcOfCircle);
+    TopoDS_Edge anEdge3 = BRepBuilderAPI_MakeEdge(aSegment2);
+    TopoDS_Wire aWire  = BRepBuilderAPI_MakeWire(anEdge1, anEdge2, anEdge3);
+    // Complete Profile
+    gp_Ax1 xAxis = gp::OX();
+    gp_Trsf aTrsf;
+    aTrsf.SetMirror(xAxis);
+    BRepBuilderAPI_Transform aBRepTrsf(aWire, aTrsf);
+    TopoDS_Shape aMirroredShape = aBRepTrsf.Shape();
+    TopoDS_Wire aMirroredWire = TopoDS::Wire(aMirroredShape);
+    BRepBuilderAPI_MakeWire mkWire;
+    mkWire.Add(aWire);
+    mkWire.Add(aMirroredWire);
+    TopoDS_Wire myWireProfile = mkWire.Wire();
+    // Body : Prism the Profile
+    TopoDS_Face myFaceProfile = BRepBuilderAPI_MakeFace(myWireProfile);
+    gp_Vec aPrismVec(0, 0, myHeight);
+    TopoDS_Shape myBody = BRepPrimAPI_MakePrism(myFaceProfile, aPrismVec);
+    // Body : Apply Fillets
+    BRepFilletAPI_MakeFillet mkFillet(myBody);
+    TopExp_Explorer anEdgeExplorer(myBody, TopAbs_EDGE);
+
+    while(anEdgeExplorer.More()){
+        TopoDS_Edge anEdge = TopoDS::Edge(anEdgeExplorer.Current());
+        //Add edge to fillet algorithm
+        mkFillet.Add(myThickness / 12., anEdge);
+        anEdgeExplorer.Next();
+    }
+    myBody = mkFillet.Shape();
+    return myBody;
+}
+
+void occQt::ExportBottle()
+{
+    StlAPI_Writer writer;
+    QString file = "Bottle.stl";
+    const TCollection_AsciiString anUtf8Path (file.toUtf8().data());
+    TopoDS_Shape bottle = MakeBottle(2,4,1);
+    const Standard_Real aLinearDeflection   = 0.01;
+    const Standard_Real anAngularDeflection = 0.5;
+    BRepMesh_IncrementalMesh aMesher (bottle, aLinearDeflection, Standard_False, anAngularDeflection, Standard_True);
+    aMesher.Perform();
+
+    std::cout << writer.Write(aMesher.Shape(), anUtf8Path.ToCString() ) << std::endl;
+}
+
+void occQt::ExportShape()
+{
+    StlAPI_Writer writer;
+    QString file = "Shape.stl";
+    const TCollection_AsciiString anUtf8Path (file.toUtf8().data());
+
+    TopoDS_Face shape = SimpleShape();
+    //шаг
+    const Standard_Real aLinearDeflection   = 0.01;
+    //угол наклона
+    const Standard_Real anAngularDeflection = 0.5;
+    BRepMesh_IncrementalMesh aMesher (shape, aLinearDeflection, Standard_False, anAngularDeflection, Standard_True);
+    aMesher.Perform();
+
+    std::cout << writer.Write(aMesher.Shape(), anUtf8Path.ToCString() ) << std::endl;
 }
 
 void occQt::createMenus( void )
@@ -156,6 +340,11 @@ void occQt::createToolBars( void )
 
     aToolBar = addToolBar(tr("Help"));
     aToolBar->addAction(ui.actionAbout);
+    aToolBar->addSeparator();
+
+    aToolBar = addToolBar(tr("&Interpolation"));
+    aToolBar->addAction(ui.action_b_spline);
+    aToolBar->addAction(ui.actionShape);
 }
 
 void occQt::about()

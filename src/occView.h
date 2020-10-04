@@ -38,7 +38,7 @@ public:
 
 public:
     //! constructor.
-    OccView(QWidget* parent);
+    OccView(QWidget* parent = 0);
 
     const Handle(AIS_InteractiveContext)& getContext() const;
 
@@ -97,10 +97,13 @@ private:
     Handle(V3d_Viewer) myViewer;
 
     //! the occ view.
+    //! Содержит все необходимые переменные о программе просмотра Openacsacade.
     Handle(V3d_View) myView;
 
     //! the occ context.
-    Handle(AIS_InteractiveContext) myContext;
+    //! AIS_InteractiveContext - это тот, который управляет взаимодействием
+    //! пользователя с отображаемыми объектами. Эти взаимодействия могут
+    //! включать вращение, панорамирование, масштабирование, выбор фигур и т.д.
 
     //! save the mouse position.
     Standard_Integer myXmin;
@@ -116,7 +119,8 @@ private:
 
     //! rubber rectangle for the mouse selection.
     QRubberBand* myRectBand;
-
+public:
+    Handle(AIS_InteractiveContext) myContext;
 };
 
 #endif // _OCCVIEW_H_

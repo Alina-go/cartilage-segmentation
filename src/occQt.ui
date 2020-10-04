@@ -24,7 +24,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -76,11 +76,18 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuMyShape">
+    <property name="title">
+     <string>MyShape</string>
+    </property>
+    <addaction name="action_b_spline"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuPrimitive"/>
    <addaction name="menuModeling"/>
    <addaction name="menuHelp"/>
+   <addaction name="menuMyShape"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExit">
@@ -281,6 +288,25 @@
    </property>
    <property name="text">
     <string>Helix</string>
+   </property>
+  </action>
+  <action name="action_b_spline">
+   <property name="text">
+    <string>ExportShape</string>
+   </property>
+  </action>
+  <action name="actionShape">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Shape</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/Resources/Home.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
  </widget>

@@ -13,7 +13,8 @@
 #define OCCQT_H
 
 #include "ui_occQt.h"
-
+#include <TopoDS_Face.hxx>
+#include <TopoDS_Shape.hxx>
 #include <AIS_InteractiveContext.hxx>
 
 class OccView;
@@ -92,6 +93,17 @@ private slots:
 
     //! test helix shapes.
     void testHelix(void);
+
+    void sphere();
+    TopoDS_Face SimpleShape();
+
+    void makeSimpleShape();
+
+    TopoDS_Shape MakeBottle(const Standard_Real myWidth, const Standard_Real myHeight,
+                            const Standard_Real myThickness);
+    void ExportBottle();
+
+    void ExportShape();
 
 private:
     Ui::occQtClass ui;

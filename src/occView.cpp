@@ -1,14 +1,3 @@
-/*
-*    Copyright (c) 2018 Shing Liu All Rights Reserved.
-*
-*           File : OccView.cpp
-*         Author : Shing Liu(eryar@163.com)
-*           Date : 2018-01-08 21:00
-*        Version : OpenCASCADE7.2.0 & Qt5.7.1
-*
-*    Description : Qt widget for OpenCASCADE viewer.
-*/
-
 #include <OpenGl_GraphicDriver.hxx>
 
 #include "occView.h"
@@ -40,11 +29,12 @@
     #include <Xw_Window.hxx>
 #endif
 
-
+// Для отображения трехмерных объектов на экране Opencascade
+// требуется некоторая связь с графической картой компьютера
 static Handle(Graphic3d_GraphicDriver)& GetGraphicDriver()
 {
-  static Handle(Graphic3d_GraphicDriver) aGraphicDriver;
-  return aGraphicDriver;
+    static Handle(Graphic3d_GraphicDriver) aGraphicDriver;
+    return aGraphicDriver;
 }
 
 OccView::OccView(QWidget* parent )
@@ -52,7 +42,7 @@ OccView::OccView(QWidget* parent )
     myXmin(0),
     myYmin(0),
     myXmax(0),
-    myYmax(0),    
+    myYmax(0),
     myCurrentMode(CurAction3d_DynamicRotation),
     myDegenerateModeIsOn(Standard_True),
     myRectBand(NULL)
@@ -75,7 +65,7 @@ void OccView::init()
 {
     // Create Aspect_DisplayConnection
     Handle(Aspect_DisplayConnection) aDisplayConnection =
-            new Aspect_DisplayConnection();
+            new Aspect_DisplayConnection;
 
     // Get graphic driver if it exists, otherwise initialise it
     if (GetGraphicDriver().IsNull())
@@ -87,13 +77,7 @@ void OccView::init()
     WId window_handle = (WId) winId();
 
     // Create appropriate window for platform
-    #ifdef WNT
-        Handle(WNT_Window) wind = new WNT_Window((Aspect_Handle) window_handle);
-    #elif defined(__APPLE__) && !defined(MACOSX_USE_GLX)
-        Handle(Cocoa_Window) wind = new Cocoa_Window((NSView *) window_handle);
-    #else
-        Handle(Xw_Window) wind = new Xw_Window(aDisplayConnection, (Window) window_handle);
-    #endif
+    Handle(WNT_Window) wind = new WNT_Window((Aspect_Handle) window_handle);
 
     // Create V3dViewer and V3d_View
     myViewer = new V3d_Viewer(GetGraphicDriver(), Standard_ExtString("viewer3d"));
@@ -101,7 +85,8 @@ void OccView::init()
     myView = myViewer->CreateView();
 
     myView->SetWindow(wind);
-    if (!wind->IsMapped()) wind->Map();
+    if (!wind->IsMapped())
+        wind->Map();
 
     // Create AISInteractiveContext
     myContext = new AIS_InteractiveContext(myViewer);
