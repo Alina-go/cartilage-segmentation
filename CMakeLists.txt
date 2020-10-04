@@ -1,7 +1,9 @@
+message(STATUS "CMAKE_CXX_LINK_LIBRARY_FLAG" ${CMAKE_CXX_LINK_LIBRARY_FLAG})
 cmake_minimum_required(VERSION 3.5)
 
 project(CartilageSegmentation LANGUAGES CXX)
 
+set(CMAKE_LINK_LIBRARY_FLAG "")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_AUTOUIC ON)
@@ -39,12 +41,12 @@ set(LIBRARIES TKernel TKMath TKG2d TKG3d TKGeomBase TKBRep TKGeomAlgo TKTopAlgo
     TKSTEPBase TKSTEPAttr TKSTEP209 TKSTEP TKIGES TKXCAF TKXDEIGES TKXDESTEP TKSTL
     TKVRML TKXmlXCAF TKBinXCAF TKRWMesh TKDraw TKTopTest TKViewerTest TKXSDRAW
     TKDCAF TKXDEDRAW TKTObjDRAW TKQADraw TKIVtkDraw)
-
+link_directories(${OCC_LIBS})
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${HEADERS} )
 
-target_link_directories(${PROJECT_NAME} PRIVATE ${OCC_LIBS})
+#target_link_directories(${PROJECT_NAME} PRIVATE ${OCC_LIBS})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt5::Core
@@ -52,3 +54,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt5::Widgets
     ${LIBRARIES}
 )
+message(STATUS "CMAKE_CXX_LINK_LIBRARY_FLAG" ${CMAKE_LINK_LIBRARY_FLAG})
