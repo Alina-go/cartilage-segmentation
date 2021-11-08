@@ -132,7 +132,7 @@ void occQt::createActions( void )
 
 }
 
-// This function for creating sphere
+// This function is for creating sphere
 void occQt::sphere()
 {
     BRepPrimAPI_MakeSphere mkSphere(20);
