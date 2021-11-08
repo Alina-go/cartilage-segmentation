@@ -35,6 +35,7 @@ set(OCC_LIBS ${CASROOT}/win64/vc14/lib)
 
 add_definitions(-DNO_COMMONSAMPLE_EXPORTS -DNO_IESAMPLE_EXPORTS -DWNT)
 
+#OpenCascade libs
 set(LIBRARIES TKernel TKMath TKG2d TKG3d TKGeomBase TKBRep TKGeomAlgo TKTopAlgo
     TKPrim TKBO TKShHealing TKBool TKHLR TKFillet TKOffset TKFeat TKMesh TKXMesh
     TKService TKV3d TKOpenGl TKMeshVS TKIVtk TKD3DHost TKCDF TKLCAF TKCAF TKBinL
