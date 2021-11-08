@@ -23,6 +23,7 @@ set(SOURCES
     src/occView.cpp
 )
 
+#Path to OpenCASCADE
 set (CASROOT "C:/OpenCASCADE-7.4.0-vc14-64/opencascade-7.4.0")
 
 set(HEADERS
